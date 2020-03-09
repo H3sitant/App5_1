@@ -58,6 +58,12 @@ from random import choice
 PONC = ["!", '"', "'", ")", "(", ",", ".", ";", ":", "?", "-", "_", "\'", "\"", "\\", "»", "«", "\n"]
 
 ###  Vous devriez inclure vos classes et méthodes ici, qui seront appellées Ã  partir du main
+def comparaison(text, librairie):
+    ressemblence=0
+    for k, v in text.items():
+        if k in librairie:
+            ressemblence += ((v ** 2) + (librairie[k] ** 2)) ** 0.5
+    return ressemblence
 def gramme(mots,di):
     i=0
     mots2=mots
@@ -94,7 +100,6 @@ def Ponctuation(ligne):
             no_punct = no_punct + char
     return no_punct
 def lecture(di):
-    nbMots=0
     longeur = 0
     for file in glob.glob('*.txt'):
         print(file + '\n')
@@ -179,11 +184,23 @@ if __name__ == "__main__":
             print("    " + aut[-1])
 
 ### Ã€ partir d'ici, vous devriez inclure les appels Ã  votre code
+    j = 1
+    librairie = []
     for a in authors:
         aut = a.split("/")
-        if aut[-1]!= '.DS_Store':
-            os.chdir(cwd+'\\'+args.d + '\\'+aut[-1])
+        di = dict()
+        if aut[-1] != '.DS_Store':
+            os.chdir(cwd+'\\'+args.d + '\\'+ aut[-1])
             di = dict()
-            di=lecture(di)
-            for k, v in di.items():
-                print(k,v)
+            di = lecture(di)
+            ##for k, v in di.items():
+                ##print(k,v)
+
+        librairie.append(di)
+        j += 1
+    i = 1
+    for a in authors:
+        if a != '.DS_Store':
+            R = comparaison(librairie[1], librairie[i])## remplacer ***librairi[1]*** par le dict() du nouveau text
+            print(a+" : %0.2f" % R)
+            i += 1
