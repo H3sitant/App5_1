@@ -55,7 +55,7 @@ from random import randint
 from random import choice
 
 ### Ajouter ici les signes de ponctuation Ã  retirer
-PONC = ["!", '"', "'", ")", "(", ",", ".", ";", ":", "?", "-", "_"]
+PONC = ["!", '"', "'", ")", "(", ",", ".", ";", ":", "?", "-", "_", "\'", "\"", "\\", "»", "«", "\n"]
 
 ###  Vous devriez inclure vos classes et méthodes ici, qui seront appellées Ã  partir du main
 def gramme(mots,di):
@@ -64,22 +64,27 @@ def gramme(mots,di):
     for w in mots:
         if len(w) >= 3:
             k = 1
+            g = k
             mots2[i] = w
+
             while k < args.m:
-                g=k
-                while i+g <len(mots) and len(mots[i+g]) < 3:
+
+                while i+g < len(mots) and len(mots[i+g]) < 3:
                     g = g+1
-                if g+i<len(mots):
+                if g+i < len(mots):
                     mots2[i] = mots2[i] + ' ' + mots[g+i]
+                else:
+                    k=args.m
                 k = k+1
+                g = g + 1
             mots2[i] = str.lower(mots2[i])
             di[mots2[i]] = di.get(mots2[i], 0.0) + 1
-            i = i + 1
+        i = i + 1
     return di
 def valeurPourCent(di,nbMots):
     di2=dict()
     for k, v in di.items():
-        di2[k] = di2.get(k, v*100/nbMots)
+        di2[k] = di2.get(k, v/nbMots)
     return di2
 def Ponctuation(ligne):
     args.p = True
@@ -94,10 +99,12 @@ def lecture(di):
     for file in glob.glob('*.txt'):
         print(file + '\n')
         f = open(file, 'r', encoding='utf-8')
+        line2=''
         for line in f:
-            mots = Ponctuation(line).split()
-            di = gramme(mots, di)
-            longeur=longeur+len(mots)
+            line2=line2+' '+line
+        mots = Ponctuation(line2).split()
+        di = gramme(mots, di)
+        longeur = longeur + len(mots)
         f.close()
     di= valeurPourCent(di, longeur)
     return di
@@ -114,7 +121,7 @@ if __name__ == "__main__":
     parser.add_argument('-d', required=True, help='Repertoire contenant les sous-repertoires des auteurs')
     parser.add_argument('-a', help='Auteur a traiter')
     parser.add_argument('-f', help='Fichier inconnu a comparer')
-    parser.add_argument('-m', required=True, type=int, choices=range(1, 3),
+    parser.add_argument('-m', required=True, type=int, choices=range(1, 4),
                         help='Mode (1 ou 2) - unigrammes ou digrammes')
     parser.add_argument('-F', type=int, help='Indication du rang (en frequence) du mot (ou bigramme) a imprimer')
     parser.add_argument('-G', type=int, help='Taille du texte a generer')
