@@ -58,6 +58,24 @@ from random import choice
 PONC = ["!", '"', "'", ")", "(", ",", ".", ";", ":", "?", "-", "_"]
 
 ###  Vous devriez inclure vos classes et méthodes ici, qui seront appellées Ã  partir du main
+def gramme(mots,di):
+    i=0
+    mots2=mots
+    for w in mots:
+        if len(w) >= 3:
+            k = 1
+            mots2[i] = w
+            while k < args.m:
+                g=k
+                while i+g <len(mots) and len(mots[i+g]) < 3:
+                    g = g+1
+                if g+i<len(mots):
+                    mots2[i] = mots2[i] + ' ' + mots[g+i]
+                k = k+1
+            mots2[i] = str.lower(mots2[i])
+            di[mots2[i]] = di.get(mots2[i], 0.0) + 1
+            i = i + 1
+    return di
 def valeurPourCent(di,nbMots):
     di2=dict()
     for k, v in di.items():
@@ -72,26 +90,18 @@ def Ponctuation(ligne):
     return no_punct
 def lecture(di):
     nbMots=0
+    longeur = 0
     for file in glob.glob('*.txt'):
         print(file + '\n')
         f = open(file, 'r', encoding='utf-8')
-
         for line in f:
-            ligne = line.rstrip()
-            mots = Ponctuation(ligne).split()
-            for w in mots:
-                if len(w) > 3:
-                    m = str.lower(w)
-                    i=0
-                    if i==args.m:
-                        m
-
-
-
-                    di[m] = di.get(w, 0.0) + 1
-                    nbMots = nbMots+1
+            mots = Ponctuation(line).split()
+            di = gramme(mots, di)
+            longeur=longeur+len(mots)
         f.close()
-    return valeurPourCent(di, nbMots)
+    di= valeurPourCent(di, longeur)
+    return di
+
 
 ### Main: lecture des paramÃ¨tres et appel des mÃ©thodes appropriÃ©es
 ###
@@ -168,3 +178,5 @@ if __name__ == "__main__":
             os.chdir(cwd+'\\'+args.d + '\\'+aut[-1])
             di = dict()
             di=lecture(di)
+            for k, v in di.items():
+                print(k,v)
