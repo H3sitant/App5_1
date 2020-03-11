@@ -54,6 +54,7 @@ import networkx as nx
 from pathlib import Path
 from random import randint
 from random import choice
+from collections import OrderedDict
 
 
 import time
@@ -61,50 +62,31 @@ import time
 PONC = ["!", '"', "'", ")", "(", ",", ".", ";", ":", "?", "-", "_", "\'", "\"", "\\", "»", "«", "\n"]
 
 ###  Vous devriez inclure vos classes et méthodes ici, qui seront appellées Ã  partir du main
-def Generation(graph1):
-    i = 1
-    NText = ''
-    di2 = dict()
-    NText = list(graph1)[randint(0, len(list(graph1))-args.m)]
-    i = args.m - 1
+def Generation(graph):
+    di = dict()
+    liste =list(graph)
+    L = len(liste)-1
+    rand = randint(0, L)
+    mots1 = liste[rand]
+    texte = mots1
+    i = 0
     while i < args.G:
-        if args.m == 1:
-            NText = NText + ' ' + k[randint(0, len(k)-1)]
-        else:
-            NText = NTextGramme(NText, k)
+        mots1 = createText(graph, mots1)
+        if mots1 == 'E':
+            return Generation(graph)
+        texte += ' ' + mots1.split()[len(mots1.split()) - 1]
         i += 1
-    print(NText)
-    mots = NText.split()
-    di2 = gramme(mots, di2)
-    di2 = valeurPourCent(di, len(mots))
-    return di2
-def NTextGramme(NText,k):
-    A = NText.split()
-    B = A[len(A)-args.m]
-    i = args.m-1
-    while i > 0:
-        B = B + ' ' + A[len(A)-i]
-        i -= 1
-    print(B)
-    time.sleep(2.4)
-    D = ''
-    while D != B:
-        E = randint(0, len(k) - args.m)
-        C = k[E].split()
-        D = C[0]
-        i = 1
-        while i < args.m:
-            print(i)
-            print(C)
-            D = D + ' ' + C[i]
-            i += 1
-        print(D)
-    i=1
-    print(C)
-    while i<len(C):
-        NText = NText + ' ' + C[i]
-        i+=1
-    return NText
+    di = gramme(texte.split(), di)
+    return di
+
+def createText(graph, mots):
+
+    liste = list(graph.neighbors(mots))
+    if not liste:
+        return 'E'
+    mots = choice(liste)
+    return mots
+
 def comparaison(text, librairie):
     ressemblence=0
     for k, v in text.items():
@@ -113,6 +95,7 @@ def comparaison(text, librairie):
     if ressemblence > 1:
         ressemblence = 1
     return ressemblence
+
 def grammeG(mots,GMots):
     i = 0
     for w in mots:
@@ -127,7 +110,8 @@ def grammeG(mots,GMots):
                 mots[i + g] = str.lower(mots[i + g])
                 if mots[i+g] not in GMots:
                     GMots.add_node(mots[i+g])
-                GMots.add_edge(w, mots[i+g])
+                if not G.has_edge(w, mots[i+g]):
+                    GMots.add_edge(w, mots[i+g])
             g = g + 1
         i = i + 1
     return GMots
@@ -140,51 +124,55 @@ def gramme(mots,di):
             g = k
             mots2[i] = w
             while k < args.m:
-
                 while i+g < len(mots) and len(mots[i+g]) < 3:
                     g = g+1
                 if g+i < len(mots):
                     mots2[i] = mots2[i] + ' ' + mots[g+i]
                 else:
-                    k=args.m
+                    k = args.m
                 k = k+1
                 g = g + 1
             mots2[i] = str.lower(mots2[i])
             di[mots2[i]] = di.get(mots2[i], 0.0) + 1
         i = i + 1
     return di
+
 def valeurPourCent(di,nbMots):
     di2=dict()
     for k, v in di.items():
         di2[k] = di2.get(k, v/nbMots)
     return di2
-def Ponctuation(ligne):
-    args.p = True
-    no_punct = ' '
-    for char in ligne:
-        if char not in PONC:
-            no_punct = no_punct + char
-    return no_punct
+
 def lecture(di, G):
     longeur = 0
     for file in glob.glob('*.txt'):
-        print(file + '\n')
+        print(file)
         f = open(file, 'r', encoding='utf-8')
         line2 = ''
         for line in f:
-            line2 = line2 + ' ' + Ponctuation(line)
+            if remove_ponc:
+                for ponctuation in PONC:
+                    line = line.replace(ponctuation, " ")
+            line2 = line2 + ' ' + line
         mots = line2.split()
-
         di = gramme(mots, di)
-        G = grammeG(list(di),G)
-        print(G.nodes())
-        print(G.edges())
-
+        G = grammeG(mots, G)
         longeur = longeur + len(mots)
         f.close()
-    di= valeurPourCent(di, longeur)
+    di = valeurPourCent(di, longeur)
     return di, G
 
+def ecriture(texte):
+    f=open(args.g,'w',encoding='utf-8')
+    f.write(args.a + ':: DEBUT :\n')
+    i=0
+    for k, v in texte.items():
+        if i % 20 == 0:
+            f.write('\n')
+        f.write(k + ' ')
+        i+=1
+    f.write('\n:: FIN :')
+    f.close()
 
 ### Main: lecture des paramÃ¨tres et appel des mÃ©thodes appropriÃ©es
 ###
@@ -258,27 +246,33 @@ if __name__ == "__main__":
     j = 1
     librairieDI = []
     librairieG = []
-    G = nx.Graph()
+    G = nx.DiGraph()
     ##Lecture et enregistrement
     for a in authors:
         aut = a.split("/")
-        di = dict()
         if aut[-1] != '.DS_Store':
-            os.chdir(cwd+'\\'+args.d + '\\' + 'Isack')
+            os.chdir(cwd+'\\'+args.d + '\\' + aut[-1])
             di = dict()
             (di, G) = lecture(di, G)
-            ##for k, v in di.items():
-                ##print(k,v)
-
-        librairieDI.append(di)
-        librairieG.append(G)
+            di = OrderedDict(sorted(di.items(), key=lambda t: t[1], reverse=True))
+            librairieDI.append(di)
+            librairieG.append(G)
         j += 1
-    i = 1
     ## génération
-    ##librairieDI.append(Generation(choice(librairieG)))
+    di = Generation(librairieG[authors.index(args.a)])
     ##Comparaison
+    ##librairieDI.append(di)
+    i = 0
     for a in authors:
         if a != '.DS_Store':
-            R = comparaison(librairieDI[len(authors)-1], librairieDI[i]) ## remplacer ***librairi[1]*** par le dict() du nouveau text
+            R = comparaison(di, librairieDI[i]) ## remplacer ***librairi[1]*** par le dict() du nouveau text
             print(a+" : %0.2f" % R)
             i += 1
+
+    liste = list(librairieDI[authors.index(args.a)])
+    print('Auteur %s : ' % args.a)
+    print('Mots a la position %d : ' % args.F)
+    print(liste[args.F])
+    os.chdir(cwd + '\\TextesGeneres')
+    ecriture(di)
+
